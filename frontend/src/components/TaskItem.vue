@@ -13,7 +13,14 @@ const urgencyClass = {
 </script>
 
 <template>
-  <div class="flex items-start gap-3 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+  <div
+    class="flex items-start gap-3 bg-white rounded-xl p-4 shadow-sm border-l-4"
+    :class="{
+      'border-red-400':   task.urgency === 'high',
+      'border-amber-400': task.urgency === 'medium',
+      'border-green-400': task.urgency === 'low',
+    }"
+  >
     <button
       data-testid="toggle"
       class="mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 transition-colors"

@@ -28,7 +28,7 @@ function onToggle(id) {
 
     <div v-else class="space-y-2">
       <TaskItem
-        v-for="task in store.tasks"
+        v-for="task in store.sortedTasks"
         :key="task.id"
         :task="task"
         @toggle="onToggle"

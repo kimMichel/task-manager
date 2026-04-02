@@ -177,3 +177,26 @@ describe('removeTask', () => {
     expect(api.deleteTask).toHaveBeenCalledWith(TASK_A.id, '2026-04-02')
   })
 })
+
+// ---------------------------------------------------------------------------
+// sortedTasks getter
+// ---------------------------------------------------------------------------
+
+describe('sortedTasks', () => {
+  const TASK_LOW    = { ...TASK_A, id: 'low-id',    urgency: 'low' }
+  const TASK_MEDIUM = { ...TASK_A, id: 'medium-id', urgency: 'medium' }
+  const TASK_HIGH   = { ...TASK_B, id: 'high-id',   urgency: 'high' }
+
+  it('returns tasks ordered high → medium → low', () => {
+    const store = useTaskStore()
+    store.tasks = [TASK_LOW, TASK_HIGH, TASK_MEDIUM]
+    expect(store.sortedTasks.map(t => t.urgency)).toEqual(['high', 'medium', 'low'])
+  })
+
+  it('does not mutate the original tasks array', () => {
+    const store = useTaskStore()
+    store.tasks = [TASK_LOW, TASK_HIGH, TASK_MEDIUM]
+    store.sortedTasks
+    expect(store.tasks.map(t => t.urgency)).toEqual(['low', 'high', 'medium'])
+  })
+})

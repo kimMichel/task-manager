@@ -8,6 +8,13 @@ export const useTaskStore = defineStore('tasks', {
     error: null,
   }),
 
+  getters: {
+    sortedTasks: (state) => {
+      const order = { high: 0, medium: 1, low: 2 }
+      return [...state.tasks].sort((a, b) => order[a.urgency] - order[b.urgency])
+    },
+  },
+
   actions: {
     async loadTasks(date) {
       this.loading = true

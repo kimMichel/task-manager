@@ -46,4 +46,19 @@ describe('TaskItem', () => {
     expect(wrapper.emitted('delete')).toBeTruthy()
     expect(wrapper.emitted('delete')[0]).toEqual([TASK.id])
   })
+
+  it('applies a high urgency border color for high urgency tasks', () => {
+    const wrapper = mount(TaskItem, { props: { task: { ...TASK, urgency: 'high' } } })
+    expect(wrapper.html()).toContain('border-red')
+  })
+
+  it('applies a medium urgency border color for medium urgency tasks', () => {
+    const wrapper = mount(TaskItem, { props: { task: { ...TASK, urgency: 'medium' } } })
+    expect(wrapper.html()).toContain('border-amber')
+  })
+
+  it('applies a low urgency border color for low urgency tasks', () => {
+    const wrapper = mount(TaskItem, { props: { task: { ...TASK, urgency: 'low' } } })
+    expect(wrapper.html()).toContain('border-green')
+  })
 })
