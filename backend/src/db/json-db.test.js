@@ -1,4 +1,4 @@
-import { describe, it, before, after } from 'node:test'
+import { describe, it, before, after, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdir, rm, readFile } from 'fs/promises'
 import { join } from 'path'
@@ -275,6 +275,54 @@ describe('rolloverPendingTasks', () => {
     await writeTasks([], TODAY, TEST_DIR)
     await rolloverPendingTasks(TODAY, TEST_DIR)
     const today = await readTasks(TODAY, TEST_DIR)
+    assert.equal(today.length, 0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// rolloverPendingTasks — skipped days (most recent past file, not just yesterday)
+// ---------------------------------------------------------------------------
+
+describe('rolloverPendingTasks — skipped days', () => {
+  const TODAY = '2026-04-10'
+  const THREE_DAYS_AGO = '2026-04-07'
+  const FIVE_DAYS_AGO  = '2026-04-05'
+  const SKIP_DIR = join(process.cwd(), 'src/db/test-data-skip')
+
+  const PENDING = { id: 'pppppppp-0000-0000-0000-000000000001', title: 'Old pending', urgency: 'high', status: 'pending', createdAt: '2026-04-07T08:00:00.000Z', description: '' }
+  const DONE    = { id: 'dddddddd-0000-0000-0000-000000000001', title: 'Old done',    urgency: 'low',  status: 'done',    createdAt: '2026-04-07T09:00:00.000Z', description: '' }
+
+  before(async () => { await mkdir(SKIP_DIR, { recursive: true }) })
+  after(async ()  => { await rm(SKIP_DIR, { recursive: true, force: true }) })
+  beforeEach(async () => { await rm(SKIP_DIR, { recursive: true, force: true }); await mkdir(SKIP_DIR, { recursive: true }) })
+
+  it('rolls over from most recent past file when yesterday has no file', async () => {
+    await writeTasks([PENDING], THREE_DAYS_AGO, SKIP_DIR)
+    await writeTasks([], TODAY, SKIP_DIR)
+    await rolloverPendingTasks(TODAY, SKIP_DIR)
+    const today = await readTasks(TODAY, SKIP_DIR)
+    assert.equal(today.length, 1)
+    assert.equal(today[0].id, PENDING.id)
+  })
+
+  it('uses the most recent past file when multiple past files exist', async () => {
+    const olderPending = { ...PENDING, id: 'oooooooo-0000-0000-0000-000000000002', title: 'Older pending' }
+    await writeTasks([olderPending], FIVE_DAYS_AGO, SKIP_DIR)
+    await writeTasks([PENDING, DONE], THREE_DAYS_AGO, SKIP_DIR)
+    await writeTasks([], TODAY, SKIP_DIR)
+    await rolloverPendingTasks(TODAY, SKIP_DIR)
+    const today = await readTasks(TODAY, SKIP_DIR)
+    assert.equal(today.length, 1)
+    assert.equal(today[0].id, PENDING.id)
+    // older file should be untouched
+    const older = await readTasks(FIVE_DAYS_AGO, SKIP_DIR)
+    assert.equal(older.length, 1)
+  })
+
+  it('does nothing when no past files exist', async () => {
+    await writeTasks([], TODAY, SKIP_DIR)
+    await rolloverPendingTasks(TODAY, SKIP_DIR)
+    const today = await readTasks(TODAY, SKIP_DIR)
     assert.equal(today.length, 0)
   })
 })
