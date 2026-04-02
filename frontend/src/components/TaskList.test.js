@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { useTaskStore } from '../stores/tasks.js'
@@ -60,5 +60,24 @@ describe('TaskList', () => {
     await wrapper.findComponent({ name: 'TaskItem' }).vm.$emit('edit', TASK_A)
     await wrapper.findComponent({ name: 'TaskEditModal' }).vm.$emit('cancel')
     expect(wrapper.findComponent({ name: 'TaskEditModal' }).exists()).toBe(false)
+  })
+})
+
+describe('TaskList — toggleChild', () => {
+  it('calls store.editTask with updated children when TaskItem emits toggleChild', async () => {
+    const store = useTaskStore()
+    const task = {
+      ...TASK_A,
+      children: [
+        { id: 'c1', title: 'Sub', done: false },
+      ],
+    }
+    store.tasks = [task]
+    store.editTask = vi.fn()
+    const wrapper = mountList()
+    await wrapper.findComponent({ name: 'TaskItem' }).vm.$emit('toggleChild', task.id, 'c1')
+    expect(store.editTask).toHaveBeenCalledWith(task.id, {
+      children: [{ id: 'c1', title: 'Sub', done: true }],
+    })
   })
 })

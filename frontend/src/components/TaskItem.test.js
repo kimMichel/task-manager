@@ -69,3 +69,38 @@ describe('TaskItem', () => {
     expect(wrapper.emitted('edit')[0][0]).toEqual(TASK)
   })
 })
+
+const TASK_WITH_CHILDREN = {
+  ...TASK,
+  children: [
+    { id: 'c1', title: 'Sub item one', done: false },
+    { id: 'c2', title: 'Sub item two', done: true },
+  ],
+}
+
+describe('TaskItem — children', () => {
+  it('shows a collapsed count badge when task has children', () => {
+    const wrapper = mount(TaskItem, { props: { task: TASK_WITH_CHILDREN } })
+    expect(wrapper.find('[data-testid="children-count"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="children-count"]').text()).toContain('1/2')
+  })
+
+  it('does not show children list by default (collapsed)', () => {
+    const wrapper = mount(TaskItem, { props: { task: TASK_WITH_CHILDREN } })
+    expect(wrapper.find('[data-testid="children-list"]').exists()).toBe(false)
+  })
+
+  it('expands the children list when count badge is clicked', async () => {
+    const wrapper = mount(TaskItem, { props: { task: TASK_WITH_CHILDREN } })
+    await wrapper.find('[data-testid="children-count"]').trigger('click')
+    expect(wrapper.find('[data-testid="children-list"]').exists()).toBe(true)
+  })
+
+  it('emits toggleChild with task id and child id when a checkbox is clicked', async () => {
+    const wrapper = mount(TaskItem, { props: { task: TASK_WITH_CHILDREN } })
+    await wrapper.find('[data-testid="children-count"]').trigger('click')
+    await wrapper.find('[data-testid="child-checkbox-c1"]').trigger('click')
+    expect(wrapper.emitted('toggleChild')).toBeTruthy()
+    expect(wrapper.emitted('toggleChild')[0]).toEqual([TASK_WITH_CHILDREN.id, 'c1'])
+  })
+})

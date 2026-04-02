@@ -51,3 +51,46 @@ describe('TaskEditModal', () => {
     expect(wrapper.emitted('cancel')).toBeTruthy()
   })
 })
+
+const TASK_WITH_CHILDREN = {
+  ...TASK,
+  children: [
+    { id: 'c1', title: 'Sub item one', done: false },
+    { id: 'c2', title: 'Sub item two', done: true },
+  ],
+}
+
+describe('TaskEditModal — children', () => {
+  it('renders existing child item titles as inputs', () => {
+    const wrapper = mount(TaskEditModal, { props: { task: TASK_WITH_CHILDREN } })
+    expect(wrapper.find('[data-testid="child-edit-input-c1"]').element.value).toBe('Sub item one')
+    expect(wrapper.find('[data-testid="child-edit-input-c2"]').element.value).toBe('Sub item two')
+  })
+
+  it('includes updated children in the save payload', async () => {
+    const wrapper = mount(TaskEditModal, { props: { task: TASK_WITH_CHILDREN } })
+    await wrapper.find('[data-testid="child-edit-input-c1"]').setValue('Updated sub item')
+    await wrapper.find('[data-testid="modal-save"]').trigger('click')
+    const saved = wrapper.emitted('save')[0][0]
+    expect(saved.children[0].title).toBe('Updated sub item')
+    expect(saved.children[1].title).toBe('Sub item two')
+  })
+
+  it('adds a new child item row in the modal', async () => {
+    const wrapper = mount(TaskEditModal, { props: { task: TASK_WITH_CHILDREN } })
+    await wrapper.find('[data-testid="modal-add-child"]').trigger('click')
+    expect(wrapper.find('[data-testid="child-edit-input-new-0"]').exists()).toBe(true)
+  })
+
+  it('removes a child item row in the modal', async () => {
+    const wrapper = mount(TaskEditModal, { props: { task: TASK_WITH_CHILDREN } })
+    await wrapper.find('[data-testid="modal-remove-child-c1"]').trigger('click')
+    expect(wrapper.find('[data-testid="child-edit-input-c1"]').exists()).toBe(false)
+  })
+
+  it('disables add child button when 10 items are present', async () => {
+    const tenChildren = Array.from({ length: 10 }, (_, i) => ({ id: `c${i}`, title: `Item ${i}`, done: false }))
+    const wrapper = mount(TaskEditModal, { props: { task: { ...TASK, children: tenChildren } } })
+    expect(wrapper.find('[data-testid="modal-add-child"]').attributes('disabled')).toBeDefined()
+  })
+})

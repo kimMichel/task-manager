@@ -460,3 +460,124 @@ describe('GET /tasks rollover', () => {
     assert.equal(rolloverCalled, false)
   })
 })
+
+// ---------------------------------------------------------------------------
+// children validation — POST /tasks
+// ---------------------------------------------------------------------------
+
+describe('POST /tasks — children validation', () => {
+  it('creates a task with valid children array', async () => {
+    const children = [{ title: 'Step one' }, { title: 'Step two' }]
+    const created = makeTask({ children: children.map((c, i) => ({ id: `child-id-${i}`, title: c.title, done: false })) })
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children },
+    })
+    assert.equal(res.statusCode, 201)
+    const body = res.json()
+    assert.equal(body.children.length, 2)
+    assert.equal(body.children[0].title, 'Step one')
+    assert.equal(body.children[0].done, false)
+    assert.ok(body.children[0].id, 'child id should be generated')
+  })
+
+  it('returns 400 when children array exceeds 10 items', async () => {
+    const children = Array.from({ length: 11 }, (_, i) => ({ title: `Child ${i + 1}` }))
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children },
+    })
+    assert.equal(res.statusCode, 400)
+    assert.match(res.json().error, /children/)
+  })
+
+  it('returns 400 when a child item has no title', async () => {
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children: [{ title: '' }] },
+    })
+    assert.equal(res.statusCode, 400)
+    assert.match(res.json().error, /child/)
+  })
+
+  it('returns 400 when a child item title exceeds 200 characters', async () => {
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children: [{ title: 'a'.repeat(201) }] },
+    })
+    assert.equal(res.statusCode, 400)
+    assert.match(res.json().error, /child/)
+  })
+
+  it('returns 400 when children is not an array', async () => {
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children: 'not-an-array' },
+    })
+    assert.equal(res.statusCode, 400)
+    assert.match(res.json().error, /children/)
+  })
+
+  it('creates a task with empty children array when omitted', async () => {
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low' },
+    })
+    assert.equal(res.statusCode, 201)
+    assert.deepEqual(res.json().children, [])
+  })
+})
+
+// ---------------------------------------------------------------------------
+// children validation — PATCH /tasks/:id
+// ---------------------------------------------------------------------------
+
+describe('PATCH /tasks/:id — children validation', () => {
+  it('updates children array on a task', async () => {
+    const existing = makeTask({ children: [] })
+    const updated = { ...existing, children: [{ id: 'c1', title: 'Updated child', done: true }] }
+    const db = { updateTask: async () => updated }
+    const res = await buildApp(db).inject({
+      method: 'PATCH',
+      url: `/tasks/${VALID_UUID}`,
+      payload: { children: [{ id: 'c1', title: 'Updated child', done: true }] },
+    })
+    assert.equal(res.statusCode, 200)
+    assert.equal(res.json().children[0].title, 'Updated child')
+  })
+
+  it('returns 400 when patched children exceed 10 items', async () => {
+    const db = { updateTask: async () => makeTask() }
+    const children = Array.from({ length: 11 }, (_, i) => ({ id: `c${i}`, title: `Child ${i}`, done: false }))
+    const res = await buildApp(db).inject({
+      method: 'PATCH',
+      url: `/tasks/${VALID_UUID}`,
+      payload: { children },
+    })
+    assert.equal(res.statusCode, 400)
+    assert.match(res.json().error, /children/)
+  })
+
+  it('returns 400 when a patched child item has empty title', async () => {
+    const db = { updateTask: async () => makeTask() }
+    const res = await buildApp(db).inject({
+      method: 'PATCH',
+      url: `/tasks/${VALID_UUID}`,
+      payload: { children: [{ id: 'c1', title: '', done: false }] },
+    })
+    assert.equal(res.statusCode, 400)
+    assert.match(res.json().error, /child/)
+  })
+})

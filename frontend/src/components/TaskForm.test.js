@@ -41,3 +41,41 @@ describe('TaskForm', () => {
     expect(wrapper.text()).toContain('Title is required')
   })
 })
+
+describe('TaskForm — children', () => {
+  it('renders an add child item button', () => {
+    const wrapper = mount(TaskForm)
+    expect(wrapper.find('[data-testid="add-child"]').exists()).toBe(true)
+  })
+
+  it('shows a child input row when add child is clicked', async () => {
+    const wrapper = mount(TaskForm)
+    await wrapper.find('[data-testid="add-child"]').trigger('click')
+    expect(wrapper.find('[data-testid="child-input-0"]').exists()).toBe(true)
+  })
+
+  it('includes children in the submit payload', async () => {
+    const wrapper = mount(TaskForm)
+    await wrapper.find('[data-testid="title"]').setValue('Parent task')
+    await wrapper.find('[data-testid="add-child"]').trigger('click')
+    await wrapper.find('[data-testid="child-input-0"]').setValue('Sub item')
+    await wrapper.find('form').trigger('submit')
+    const emitted = wrapper.emitted('submit')[0][0]
+    expect(emitted.children).toEqual([{ title: 'Sub item' }])
+  })
+
+  it('does not allow adding more than 10 child items', async () => {
+    const wrapper = mount(TaskForm)
+    for (let i = 0; i < 10; i++) {
+      await wrapper.find('[data-testid="add-child"]').trigger('click')
+    }
+    expect(wrapper.find('[data-testid="add-child"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('removes a child item when its remove button is clicked', async () => {
+    const wrapper = mount(TaskForm)
+    await wrapper.find('[data-testid="add-child"]').trigger('click')
+    await wrapper.find('[data-testid="remove-child-0"]').trigger('click')
+    expect(wrapper.find('[data-testid="child-input-0"]').exists()).toBe(false)
+  })
+})
