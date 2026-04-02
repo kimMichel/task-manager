@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from 'fs/promises'
+import { readFile, writeFile, mkdir, readdir } from 'fs/promises'
 import { join, resolve } from 'path'
 
 const DEFAULT_DATA_DIR = join(process.cwd(), '..', 'data')
@@ -68,28 +68,43 @@ const URGENCY_ORDER = { high: 0, medium: 1, low: 2 }
 const MAX_TASKS = 20
 
 export async function rolloverPendingTasks(todayDate, dataDir) {
-  const d = new Date(todayDate)
-  d.setUTCDate(d.getUTCDate() - 1)
-  const yesterdayDate = d.toISOString().slice(0, 10)
+  const dir = resolve(dataDir ?? DEFAULT_DATA_DIR)
 
-  const [todayTasks, yesterdayTasks] = await Promise.all([
+  let files
+  try {
+    files = await readdir(dir)
+  } catch {
+    return
+  }
+
+  const pastDates = files
+    .map(f => f.replace(/\.json$/, ''))
+    .filter(d => isValidDate(d) && d < todayDate)
+    .sort()
+    .reverse()
+
+  if (pastDates.length === 0) return
+
+  const sourceDate = pastDates[0]
+
+  const [todayTasks, sourceTasks] = await Promise.all([
     readTasks(todayDate, dataDir),
-    readTasks(yesterdayDate, dataDir),
+    readTasks(sourceDate, dataDir),
   ])
 
-  const pendingYesterday = yesterdayTasks
+  const pendingSource = sourceTasks
     .filter((t) => t.status === 'pending')
     .sort((a, b) => (URGENCY_ORDER[a.urgency] ?? 3) - (URGENCY_ORDER[b.urgency] ?? 3))
 
   const slots = MAX_TASKS - todayTasks.length
-  if (slots <= 0 || pendingYesterday.length === 0) return
+  if (slots <= 0 || pendingSource.length === 0) return
 
-  const toMove = pendingYesterday.slice(0, slots)
-  const toKeep = pendingYesterday.slice(slots)
-  const done = yesterdayTasks.filter((t) => t.status !== 'pending')
+  const toMove = pendingSource.slice(0, slots)
+  const toKeep = pendingSource.slice(slots)
+  const done = sourceTasks.filter((t) => t.status !== 'pending')
 
   await Promise.all([
     writeTasks([...todayTasks, ...toMove], todayDate, dataDir),
-    writeTasks([...done, ...toKeep], yesterdayDate, dataDir),
+    writeTasks([...done, ...toKeep], sourceDate, dataDir),
   ])
 }
