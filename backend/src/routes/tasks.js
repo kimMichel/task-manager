@@ -4,6 +4,7 @@ import { isValidDate, readTasks as defaultReadTasks, writeTasks as defaultWriteT
 const MAX_TITLE_LENGTH = 200
 const MAX_DESCRIPTION_LENGTH = 1000
 const MAX_TASKS_PER_DAY = 20
+const MAX_CHILDREN = 10
 const VALID_URGENCY = new Set(['low', 'medium', 'high'])
 const VALID_STATUS = new Set(['pending', 'done'])
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -48,6 +49,29 @@ function validateEnum(value, name, allowed, reply) {
   return true
 }
 
+function validateChildren(children, reply) {
+  if (children === undefined) return true
+  if (!Array.isArray(children)) {
+    reply.code(400).send({ error: 'children must be an array' })
+    return false
+  }
+  if (children.length > MAX_CHILDREN) {
+    reply.code(400).send({ error: `children must not exceed ${MAX_CHILDREN} items` })
+    return false
+  }
+  for (const child of children) {
+    if (!child.title || typeof child.title !== 'string' || !child.title.trim()) {
+      reply.code(400).send({ error: 'each child item must have a non-empty title' })
+      return false
+    }
+    if (child.title.length > MAX_TITLE_LENGTH) {
+      reply.code(400).send({ error: `child item title must be ${MAX_TITLE_LENGTH} characters or fewer` })
+      return false
+    }
+  }
+  return true
+}
+
 async function dbCall(fn, reply) {
   try {
     return await fn()
@@ -76,7 +100,7 @@ export default async function taskRoutes(fastify, opts = {}) {
   })
 
   fastify.post('/tasks', async (request, reply) => {
-    const { title, description = '', urgency, status = 'pending', date } = request.body ?? {}
+    const { title, description = '', urgency, status = 'pending', date, children } = request.body ?? {}
 
     if (!validateDate(date, reply)) return
     if (!validateType(title, 'title', 'string', reply)) return
@@ -94,6 +118,7 @@ export default async function taskRoutes(fastify, opts = {}) {
     }
     if (!validateEnum(urgency, 'urgency', VALID_URGENCY, reply)) return
     if (!validateEnum(status, 'status', VALID_STATUS, reply)) return
+    if (!validateChildren(children, reply)) return
 
     const tasks = await dbCall(() => readTasks(date), reply)
     if (tasks === null) return
@@ -109,6 +134,7 @@ export default async function taskRoutes(fastify, opts = {}) {
       urgency,
       status,
       createdAt: new Date().toISOString(),
+      children: (children ?? []).map((c) => ({ id: randomUUID(), title: c.title.trim(), done: false })),
     }
 
     const written = await dbCall(() => writeTasks([...tasks, task], date), reply)
@@ -130,6 +156,7 @@ export default async function taskRoutes(fastify, opts = {}) {
     if (!validateLength(body.title, 'title', MAX_TITLE_LENGTH, reply)) return
     if (!validateEnum(body.urgency, 'urgency', VALID_URGENCY, reply)) return
     if (!validateEnum(body.status, 'status', VALID_STATUS, reply)) return
+    if (!validateChildren(body.children, reply)) return
 
     const updated = await dbCall(() => updateTask(date, id, body), reply)
     if (updated === null && reply.sent) return

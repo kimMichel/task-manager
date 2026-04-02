@@ -18,6 +18,15 @@ async function onSave(updates) {
   await store.editTask(editingTask.value.id, updates)
   editingTask.value = null
 }
+
+function onToggleChild(taskId, childId) {
+  const task = store.tasks.find(t => t.id === taskId)
+  if (!task) return
+  const children = (task.children ?? []).map(c =>
+    c.id === childId ? { ...c, done: !c.done } : c
+  )
+  store.editTask(taskId, { children })
+}
 </script>
 
 <template>
@@ -42,6 +51,7 @@ async function onSave(updates) {
         @toggle="onToggle"
         @delete="store.removeTask($event)"
         @edit="editingTask = $event"
+        @toggleChild="onToggleChild"
       />
     </div>
 

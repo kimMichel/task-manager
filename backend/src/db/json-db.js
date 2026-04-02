@@ -5,7 +5,7 @@ const DEFAULT_DATA_DIR = join(process.cwd(), '..', 'data')
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
-const ALLOWED_UPDATE_FIELDS = new Set(['title', 'description', 'urgency', 'status'])
+const ALLOWED_UPDATE_FIELDS = new Set(['title', 'description', 'urgency', 'status', 'children'])
 
 export function isValidDate(date) {
   if (!DATE_REGEX.test(date)) return false

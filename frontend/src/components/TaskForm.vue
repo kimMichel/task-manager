@@ -1,12 +1,25 @@
 <script setup>
 import { ref } from 'vue'
 
+const MAX_CHILDREN = 10
+
 const emit = defineEmits(['submit'])
 
 const title = ref('')
 const urgency = ref('low')
 const description = ref('')
 const validationError = ref('')
+const children = ref([])
+
+function addChild() {
+  if (children.value.length < MAX_CHILDREN) {
+    children.value.push({ title: '' })
+  }
+}
+
+function removeChild(index) {
+  children.value.splice(index, 1)
+}
 
 function handleSubmit() {
   if (!title.value.trim()) {
@@ -18,10 +31,12 @@ function handleSubmit() {
     title: title.value.trim(),
     urgency: urgency.value,
     description: description.value,
+    children: children.value.filter(c => c.title.trim()).map(c => ({ title: c.title.trim() })),
   })
   title.value = ''
   urgency.value = 'low'
   description.value = ''
+  children.value = []
 }
 </script>
 
@@ -58,6 +73,33 @@ function handleSubmit() {
       placeholder="Description (optional)"
       class="w-full text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors"
     />
+
+    <div v-if="children.length > 0" class="space-y-1.5">
+      <div v-for="(child, i) in children" :key="i" class="flex items-center gap-2">
+        <input
+          :data-testid="`child-input-${i}`"
+          v-model="child.title"
+          type="text"
+          placeholder="Sub-item…"
+          maxlength="200"
+          class="flex-1 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-1.5 outline-none focus:border-gray-400 transition-colors"
+        />
+        <button
+          type="button"
+          :data-testid="`remove-child-${i}`"
+          class="text-gray-300 hover:text-red-400 transition-colors text-lg leading-none"
+          @click="removeChild(i)"
+        >×</button>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      data-testid="add-child"
+      :disabled="children.length >= MAX_CHILDREN"
+      class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      @click="addChild"
+    >+ Add sub-item</button>
 
     <p v-if="validationError" class="text-xs text-red-500">{{ validationError }}</p>
   </form>
