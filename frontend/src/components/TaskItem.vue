@@ -14,7 +14,7 @@ const urgencyClass = {
 
 <template>
   <div
-    class="flex items-start gap-3 bg-white rounded-xl p-4 shadow-sm border-l-4"
+    class="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border-l-4 transition-colors"
     :class="{
       'border-red-400':   task.urgency === 'high',
       'border-amber-400': task.urgency === 'medium',
@@ -30,7 +30,7 @@ const urgencyClass = {
 
     <div class="flex-1 min-w-0">
       <p
-        class="text-sm font-medium text-gray-800 break-words"
+        class="text-sm font-medium text-gray-800 dark:text-gray-100 break-words"
         :class="{ 'line-through text-gray-400': task.status === 'done' }"
       >
         {{ task.title }}

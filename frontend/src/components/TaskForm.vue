@@ -26,19 +26,19 @@ function handleSubmit() {
 </script>
 
 <template>
-  <form class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-3" @submit.prevent="handleSubmit">
+  <form class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 space-y-3 transition-colors" @submit.prevent="handleSubmit">
     <div class="flex gap-2">
       <input
         data-testid="title"
         v-model="title"
         type="text"
         placeholder="New task…"
-        class="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors"
+        class="flex-1 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 outline-none focus:border-gray-400 dark:focus:border-gray-400 transition-colors"
       />
       <select
         data-testid="urgency"
         v-model="urgency"
-        class="text-sm border border-gray-200 rounded-lg px-2 py-2 outline-none focus:border-gray-400 transition-colors bg-white"
+        class="text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 outline-none focus:border-gray-400 transition-colors bg-white"
       >
         <option value="low">Low</option>
         <option value="medium">Medium</option>
@@ -56,7 +56,7 @@ function handleSubmit() {
       v-model="description"
       type="text"
       placeholder="Description (optional)"
-      class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors"
+      class="w-full text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors"
     />
 
     <p v-if="validationError" class="text-xs text-red-500">{{ validationError }}</p>
