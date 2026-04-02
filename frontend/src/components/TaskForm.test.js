@@ -79,3 +79,22 @@ describe('TaskForm — children', () => {
     expect(wrapper.find('[data-testid="child-input-0"]').exists()).toBe(false)
   })
 })
+
+describe('TaskForm — child description', () => {
+  it('shows a description input for each child row', async () => {
+    const wrapper = mount(TaskForm)
+    await wrapper.find('[data-testid="add-child"]').trigger('click')
+    expect(wrapper.find('[data-testid="child-description-0"]').exists()).toBe(true)
+  })
+
+  it('includes child description in the submit payload', async () => {
+    const wrapper = mount(TaskForm)
+    await wrapper.find('[data-testid="title"]').setValue('Parent task')
+    await wrapper.find('[data-testid="add-child"]').trigger('click')
+    await wrapper.find('[data-testid="child-input-0"]').setValue('Sub item')
+    await wrapper.find('[data-testid="child-description-0"]').setValue('Child detail')
+    await wrapper.find('form').trigger('submit')
+    const emitted = wrapper.emitted('submit')[0][0]
+    expect(emitted.children[0].description).toBe('Child detail')
+  })
+})

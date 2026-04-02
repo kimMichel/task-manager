@@ -94,3 +94,26 @@ describe('TaskEditModal — children', () => {
     expect(wrapper.find('[data-testid="modal-add-child"]').attributes('disabled')).toBeDefined()
   })
 })
+
+describe('TaskEditModal — child description', () => {
+  it('pre-fills child description inputs', () => {
+    const task = {
+      ...TASK,
+      children: [{ id: 'c1', title: 'Sub item', description: 'Some detail', done: false }],
+    }
+    const wrapper = mount(TaskEditModal, { props: { task } })
+    expect(wrapper.find('[data-testid="child-edit-description-c1"]').element.value).toBe('Some detail')
+  })
+
+  it('includes child description in the save payload', async () => {
+    const task = {
+      ...TASK,
+      children: [{ id: 'c1', title: 'Sub item', description: 'Old detail', done: false }],
+    }
+    const wrapper = mount(TaskEditModal, { props: { task } })
+    await wrapper.find('[data-testid="child-edit-description-c1"]').setValue('New detail')
+    await wrapper.find('[data-testid="modal-save"]').trigger('click')
+    const saved = wrapper.emitted('save')[0][0]
+    expect(saved.children[0].description).toBe('New detail')
+  })
+})

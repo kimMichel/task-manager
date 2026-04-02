@@ -581,3 +581,53 @@ describe('PATCH /tasks/:id — children validation', () => {
     assert.match(res.json().error, /child/)
   })
 })
+
+// ---------------------------------------------------------------------------
+// child item description — POST /tasks
+// ---------------------------------------------------------------------------
+
+describe('POST /tasks — child description', () => {
+  it('saves a child item with a description', async () => {
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children: [{ title: 'Child', description: 'Some detail' }] },
+    })
+    assert.equal(res.statusCode, 201)
+    assert.equal(res.json().children[0].description, 'Some detail')
+  })
+
+  it('defaults child description to empty string when omitted', async () => {
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children: [{ title: 'Child' }] },
+    })
+    assert.equal(res.statusCode, 201)
+    assert.equal(res.json().children[0].description, '')
+  })
+
+  it('returns 400 when child description exceeds 1000 characters', async () => {
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children: [{ title: 'Child', description: 'a'.repeat(1001) }] },
+    })
+    assert.equal(res.statusCode, 400)
+    assert.match(res.json().error, /child/)
+  })
+
+  it('returns 400 when child description is not a string', async () => {
+    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const res = await buildApp(db).inject({
+      method: 'POST',
+      url: '/tasks',
+      payload: { title: 'Parent', urgency: 'low', children: [{ title: 'Child', description: 123 }] },
+    })
+    assert.equal(res.statusCode, 400)
+    assert.match(res.json().error, /child/)
+  })
+})

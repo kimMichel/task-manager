@@ -104,3 +104,15 @@ describe('TaskItem — children', () => {
     expect(wrapper.emitted('toggleChild')[0]).toEqual([TASK_WITH_CHILDREN.id, 'c1'])
   })
 })
+
+describe('TaskItem — child description', () => {
+  it('shows child description in the expanded list', async () => {
+    const task = {
+      ...TASK,
+      children: [{ id: 'c1', title: 'Sub item', description: 'Child detail', done: false }],
+    }
+    const wrapper = mount(TaskItem, { props: { task } })
+    await wrapper.find('[data-testid="children-count"]').trigger('click')
+    expect(wrapper.find('[data-testid="child-description-c1"]').text()).toBe('Child detail')
+  })
+})
