@@ -3,7 +3,7 @@ const props = defineProps({
   task: { type: Object, required: true },
 })
 
-const emit = defineEmits(['toggle', 'delete'])
+const emit = defineEmits(['toggle', 'delete', 'edit'])
 
 const urgencyClass = {
   low: 'bg-green-100 text-green-700',
@@ -28,7 +28,11 @@ const urgencyClass = {
       @click="emit('toggle', task.id)"
     />
 
-    <div class="flex-1 min-w-0">
+    <div
+      data-testid="card-body"
+      class="flex-1 min-w-0 cursor-pointer"
+      @click="emit('edit', task)"
+    >
       <p
         class="text-sm font-medium text-gray-800 dark:text-gray-100 break-words"
         :class="{ 'line-through text-gray-400': task.status === 'done' }"

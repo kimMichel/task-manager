@@ -1,14 +1,22 @@
 <script setup>
+import { ref } from 'vue'
 import { useTaskStore } from '../stores/tasks.js'
 import TaskItem from './TaskItem.vue'
+import TaskEditModal from './TaskEditModal.vue'
 
 const store = useTaskStore()
+const editingTask = ref(null)
 
 function onToggle(id) {
   const task = store.tasks.find(t => t.id === id)
   if (task) {
     store.editTask(id, { status: task.status === 'done' ? 'pending' : 'done' })
   }
+}
+
+async function onSave(updates) {
+  await store.editTask(editingTask.value.id, updates)
+  editingTask.value = null
 }
 </script>
 
@@ -33,7 +41,15 @@ function onToggle(id) {
         :task="task"
         @toggle="onToggle"
         @delete="store.removeTask($event)"
+        @edit="editingTask = $event"
       />
     </div>
+
+    <TaskEditModal
+      v-if="editingTask"
+      :task="editingTask"
+      @save="onSave"
+      @cancel="editingTask = null"
+    />
   </div>
 </template>
