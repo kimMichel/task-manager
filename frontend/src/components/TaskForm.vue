@@ -13,7 +13,7 @@ const children = ref([])
 
 function addChild() {
   if (children.value.length < MAX_CHILDREN) {
-    children.value.push({ title: '' })
+    children.value.push({ title: '', description: '' })
   }
 }
 
@@ -31,7 +31,7 @@ function handleSubmit() {
     title: title.value.trim(),
     urgency: urgency.value,
     description: description.value,
-    children: children.value.filter(c => c.title.trim()).map(c => ({ title: c.title.trim() })),
+    children: children.value.filter(c => c.title.trim()).map(c => ({ title: c.title.trim(), description: c.description })),
   })
   title.value = ''
   urgency.value = 'low'
@@ -75,21 +75,31 @@ function handleSubmit() {
     />
 
     <div v-if="children.length > 0" class="space-y-1.5">
-      <div v-for="(child, i) in children" :key="i" class="flex items-center gap-2">
+      <div v-for="(child, i) in children" :key="i" class="space-y-1">
+        <div class="flex items-center gap-2">
+          <input
+            :data-testid="`child-input-${i}`"
+            v-model="child.title"
+            type="text"
+            placeholder="Sub-item…"
+            maxlength="200"
+            class="flex-1 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-1.5 outline-none focus:border-gray-400 transition-colors"
+          />
+          <button
+            type="button"
+            :data-testid="`remove-child-${i}`"
+            class="text-gray-300 hover:text-red-400 transition-colors text-lg leading-none"
+            @click="removeChild(i)"
+          >×</button>
+        </div>
         <input
-          :data-testid="`child-input-${i}`"
-          v-model="child.title"
+          :data-testid="`child-description-${i}`"
+          v-model="child.description"
           type="text"
-          placeholder="Sub-item…"
-          maxlength="200"
-          class="flex-1 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-1.5 outline-none focus:border-gray-400 transition-colors"
+          placeholder="Sub-item description (optional)"
+          maxlength="1000"
+          class="w-full text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-1.5 outline-none focus:border-gray-400 transition-colors"
         />
-        <button
-          type="button"
-          :data-testid="`remove-child-${i}`"
-          class="text-gray-300 hover:text-red-400 transition-colors text-lg leading-none"
-          @click="removeChild(i)"
-        >×</button>
       </div>
     </div>
 

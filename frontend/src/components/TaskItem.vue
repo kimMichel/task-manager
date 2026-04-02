@@ -78,17 +78,24 @@ const doneCount = computed(() => children.value.filter(c => c.done).length)
     </div>
 
     <ul v-if="expanded && children.length > 0" data-testid="children-list" class="px-4 pb-3 space-y-1.5">
-      <li v-for="child in children" :key="child.id" class="flex items-center gap-2">
+      <li v-for="child in children" :key="child.id" class="flex items-start gap-2">
         <button
           :data-testid="`child-checkbox-${child.id}`"
-          class="w-4 h-4 rounded border-2 flex-shrink-0 transition-colors"
+          class="mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 transition-colors"
           :class="child.done ? 'bg-gray-700 border-gray-700' : 'border-gray-300 hover:border-gray-500'"
           @click="emit('toggleChild', task.id, child.id)"
         />
-        <span
-          class="text-xs text-gray-700 dark:text-gray-300 break-words"
-          :class="{ 'line-through text-gray-400': child.done }"
-        >{{ child.title }}</span>
+        <div class="min-w-0">
+          <span
+            class="text-xs text-gray-700 dark:text-gray-300 break-words"
+            :class="{ 'line-through text-gray-400': child.done }"
+          >{{ child.title }}</span>
+          <p
+            v-if="child.description"
+            :data-testid="`child-description-${child.id}`"
+            class="text-xs text-gray-400 break-words"
+          >{{ child.description }}</p>
+        </div>
       </li>
     </ul>
   </div>

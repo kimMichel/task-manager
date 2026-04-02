@@ -29,7 +29,7 @@ const totalChildren = () => children.value.length + newChildren.value.length
 
 function addChild() {
   if (totalChildren() < MAX_CHILDREN) {
-    newChildren.value.push({ title: '' })
+    newChildren.value.push({ title: '', description: '' })
   }
 }
 
@@ -50,7 +50,7 @@ function save() {
     ...children.value,
     ...newChildren.value
       .filter(c => c.title.trim())
-      .map(c => ({ id: `new-${Date.now()}-${Math.random()}`, title: c.title.trim(), done: false })),
+      .map(c => ({ id: `new-${Date.now()}-${Math.random()}`, title: c.title.trim(), description: c.description ?? '', done: false })),
   ]
   emit('save', {
     title: title.value.trim(),
@@ -109,36 +109,55 @@ function save() {
       <div class="space-y-2">
         <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Sub-items</label>
 
-        <div v-for="child in children" :key="child.id" class="flex items-center gap-2">
+        <div v-for="child in children" :key="child.id" class="space-y-1">
+          <div class="flex items-center gap-2">
+            <input
+              :data-testid="`child-edit-input-${child.id}`"
+              v-model="child.title"
+              type="text"
+              maxlength="200"
+              class="flex-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+            />
+            <button
+              type="button"
+              :data-testid="`modal-remove-child-${child.id}`"
+              class="text-gray-300 hover:text-red-400 transition-colors text-lg leading-none"
+              @click="removeExistingChild(child.id)"
+            >×</button>
+          </div>
           <input
-            :data-testid="`child-edit-input-${child.id}`"
-            v-model="child.title"
+            :data-testid="`child-edit-description-${child.id}`"
+            v-model="child.description"
             type="text"
-            maxlength="200"
-            class="flex-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+            maxlength="1000"
+            placeholder="Description (optional)"
+            class="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
-          <button
-            type="button"
-            :data-testid="`modal-remove-child-${child.id}`"
-            class="text-gray-300 hover:text-red-400 transition-colors text-lg leading-none"
-            @click="removeExistingChild(child.id)"
-          >×</button>
         </div>
 
-        <div v-for="(child, i) in newChildren" :key="`new-${i}`" class="flex items-center gap-2">
+        <div v-for="(child, i) in newChildren" :key="`new-${i}`" class="space-y-1">
+          <div class="flex items-center gap-2">
+            <input
+              :data-testid="`child-edit-input-new-${i}`"
+              v-model="child.title"
+              type="text"
+              maxlength="200"
+              placeholder="Sub-item…"
+              class="flex-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+            />
+            <button
+              type="button"
+              class="text-gray-300 hover:text-red-400 transition-colors text-lg leading-none"
+              @click="removeNewChild(i)"
+            >×</button>
+          </div>
           <input
-            :data-testid="`child-edit-input-new-${i}`"
-            v-model="child.title"
+            v-model="child.description"
             type="text"
-            maxlength="200"
-            placeholder="Sub-item…"
-            class="flex-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+            maxlength="1000"
+            placeholder="Description (optional)"
+            class="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
-          <button
-            type="button"
-            class="text-gray-300 hover:text-red-400 transition-colors text-lg leading-none"
-            @click="removeNewChild(i)"
-          >×</button>
         </div>
 
         <button

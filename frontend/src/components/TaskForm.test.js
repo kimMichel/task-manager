@@ -61,7 +61,7 @@ describe('TaskForm — children', () => {
     await wrapper.find('[data-testid="child-input-0"]').setValue('Sub item')
     await wrapper.find('form').trigger('submit')
     const emitted = wrapper.emitted('submit')[0][0]
-    expect(emitted.children).toEqual([{ title: 'Sub item' }])
+    expect(emitted.children).toEqual([{ title: 'Sub item', description: '' }])
   })
 
   it('does not allow adding more than 10 child items', async () => {

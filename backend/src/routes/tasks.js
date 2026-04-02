@@ -68,6 +68,14 @@ function validateChildren(children, reply) {
       reply.code(400).send({ error: `child item title must be ${MAX_TITLE_LENGTH} characters or fewer` })
       return false
     }
+    if (child.description !== undefined && typeof child.description !== 'string') {
+      reply.code(400).send({ error: 'child item description must be a string' })
+      return false
+    }
+    if (child.description !== undefined && child.description.length > MAX_DESCRIPTION_LENGTH) {
+      reply.code(400).send({ error: `child item description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer` })
+      return false
+    }
   }
   return true
 }
@@ -134,7 +142,7 @@ export default async function taskRoutes(fastify, opts = {}) {
       urgency,
       status,
       createdAt: new Date().toISOString(),
-      children: (children ?? []).map((c) => ({ id: randomUUID(), title: c.title.trim(), done: false })),
+      children: (children ?? []).map((c) => ({ id: randomUUID(), title: c.title.trim(), description: c.description ?? '', done: false })),
     }
 
     const written = await dbCall(() => writeTasks([...tasks, task], date), reply)
