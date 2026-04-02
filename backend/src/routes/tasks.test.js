@@ -433,3 +433,30 @@ describe('security', () => {
     assert.match(res.json().error, /title/)
   })
 })
+
+// ---------------------------------------------------------------------------
+// GET /tasks — rollover integration
+// ---------------------------------------------------------------------------
+
+describe('GET /tasks rollover', () => {
+  it('calls rolloverPendingTasks before returning today tasks', async () => {
+    let rolloverCalled = false
+    const db = {
+      rolloverPendingTasks: async () => { rolloverCalled = true },
+      readTasks: async () => [],
+    }
+    const today = new Date().toISOString().slice(0, 10)
+    await buildApp(db).inject({ method: 'GET', url: `/tasks?date=${today}` })
+    assert.equal(rolloverCalled, true)
+  })
+
+  it('does not call rolloverPendingTasks for past dates', async () => {
+    let rolloverCalled = false
+    const db = {
+      rolloverPendingTasks: async () => { rolloverCalled = true },
+      readTasks: async () => [],
+    }
+    await buildApp(db).inject({ method: 'GET', url: '/tasks?date=2020-01-01' })
+    assert.equal(rolloverCalled, false)
+  })
+})
