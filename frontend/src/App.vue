@@ -1,17 +1,26 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useTaskStore } from './stores/tasks.js'
 import { useTheme } from './composables/useTheme.js'
 import TaskForm from './components/TaskForm.vue'
 import TaskList from './components/TaskList.vue'
+import DaySelector from './components/DaySelector.vue'
 
 const store = useTaskStore()
 const { isDark, toggle } = useTheme()
 
-onMounted(() => store.loadTasks())
+function today() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+const selectedDate = ref(today())
+
+onMounted(() => store.loadTasks(selectedDate.value))
+
+watch(selectedDate, (date) => store.loadTasks(date))
 
 function handleSubmit(payload) {
-  store.addTask(payload)
+  store.addTask({ ...payload, date: selectedDate.value })
 }
 </script>
 
@@ -34,6 +43,9 @@ function handleSubmit(payload) {
           </svg>
         </button>
       </div>
+
+      <DaySelector v-model="selectedDate" />
+
       <TaskForm @submit="handleSubmit" />
       <TaskList />
     </div>

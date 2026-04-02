@@ -37,7 +37,7 @@ describe('App', () => {
     const wrapper = mount(App, { global: { plugins: [pinia] } })
     await flushPromises()
     await wrapper.findComponent({ name: 'TaskForm' }).vm.$emit('submit', { title: 'New task', urgency: 'low' })
-    expect(store.addTask).toHaveBeenCalledWith({ title: 'New task', urgency: 'low' })
+    expect(store.addTask).toHaveBeenCalledWith(expect.objectContaining({ title: 'New task', urgency: 'low' }))
   })
 
   it('calls loadTasks with today date on mount', async () => {
