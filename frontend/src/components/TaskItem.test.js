@@ -61,4 +61,11 @@ describe('TaskItem', () => {
     const wrapper = mount(TaskItem, { props: { task: { ...TASK, urgency: 'low' } } })
     expect(wrapper.html()).toContain('border-green')
   })
+
+  it('emits edit with the full task when the card body is clicked', async () => {
+    const wrapper = mount(TaskItem, { props: { task: TASK } })
+    await wrapper.find('[data-testid="card-body"]').trigger('click')
+    expect(wrapper.emitted('edit')).toBeTruthy()
+    expect(wrapper.emitted('edit')[0][0]).toEqual(TASK)
+  })
 })

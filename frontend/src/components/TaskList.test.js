@@ -44,4 +44,21 @@ describe('TaskList', () => {
     const wrapper = mountList()
     expect(wrapper.text()).toContain('Failed to load tasks')
   })
+
+  it('opens the edit modal when a task card emits edit', async () => {
+    const store = useTaskStore()
+    store.tasks = [TASK_A]
+    const wrapper = mountList()
+    await wrapper.findComponent({ name: 'TaskItem' }).vm.$emit('edit', TASK_A)
+    expect(wrapper.findComponent({ name: 'TaskEditModal' }).exists()).toBe(true)
+  })
+
+  it('closes the edit modal on cancel', async () => {
+    const store = useTaskStore()
+    store.tasks = [TASK_A]
+    const wrapper = mountList()
+    await wrapper.findComponent({ name: 'TaskItem' }).vm.$emit('edit', TASK_A)
+    await wrapper.findComponent({ name: 'TaskEditModal' }).vm.$emit('cancel')
+    expect(wrapper.findComponent({ name: 'TaskEditModal' }).exists()).toBe(false)
+  })
 })
