@@ -64,7 +64,7 @@ describe('GET /tasks', () => {
 
 describe('POST /tasks', () => {
   it('returns 201 with created task including id and createdAt', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = { readTasks: async () => [] }
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -79,7 +79,7 @@ describe('POST /tasks', () => {
   })
 
   it('defaults status to pending when omitted', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = { readTasks: async () => [] }
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -89,7 +89,7 @@ describe('POST /tasks', () => {
   })
 
   it('returns 400 when title is missing', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -100,7 +100,7 @@ describe('POST /tasks', () => {
   })
 
   it('returns 400 when title is empty string', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -111,7 +111,7 @@ describe('POST /tasks', () => {
   })
 
   it('returns 400 when title is not a string', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -121,7 +121,7 @@ describe('POST /tasks', () => {
   })
 
   it('returns 400 when description is not a string', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -131,7 +131,7 @@ describe('POST /tasks', () => {
   })
 
   it('returns 400 when urgency is missing', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -142,7 +142,7 @@ describe('POST /tasks', () => {
   })
 
   it('returns 400 when urgency is invalid', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -153,7 +153,7 @@ describe('POST /tasks', () => {
   })
 
   it('returns 400 when status is invalid', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -164,7 +164,7 @@ describe('POST /tasks', () => {
   })
 
   it('returns 400 for invalid date', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -214,7 +214,7 @@ describe('PATCH /tasks/:id', () => {
   })
 
   it('returns 400 for invalid UUID :id', async () => {
-    const db = { updateTask: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'PATCH',
       url: '/tasks/not-a-uuid',
@@ -225,7 +225,7 @@ describe('PATCH /tasks/:id', () => {
   })
 
   it('returns 400 for invalid date', async () => {
-    const db = { updateTask: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'PATCH',
       url: `/tasks/${VALID_UUID}`,
@@ -235,7 +235,7 @@ describe('PATCH /tasks/:id', () => {
   })
 
   it('returns 400 when urgency is invalid', async () => {
-    const db = { updateTask: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'PATCH',
       url: `/tasks/${VALID_UUID}`,
@@ -246,7 +246,7 @@ describe('PATCH /tasks/:id', () => {
   })
 
   it('returns 400 when status is invalid', async () => {
-    const db = { updateTask: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'PATCH',
       url: `/tasks/${VALID_UUID}`,
@@ -257,7 +257,7 @@ describe('PATCH /tasks/:id', () => {
   })
 
   it('returns 400 when title is not a string', async () => {
-    const db = { updateTask: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'PATCH',
       url: `/tasks/${VALID_UUID}`,
@@ -267,7 +267,7 @@ describe('PATCH /tasks/:id', () => {
   })
 
   it('returns 400 when description is not a string', async () => {
-    const db = { updateTask: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'PATCH',
       url: `/tasks/${VALID_UUID}`,
@@ -321,7 +321,7 @@ describe('DELETE /tasks/:id', () => {
   })
 
   it('returns 400 for invalid UUID :id', async () => {
-    const db = { deleteTask: async () => {} }
+    const db = {}
     const res = await buildApp(db).inject({
       method: 'DELETE',
       url: '/tasks/not-a-uuid',
@@ -382,7 +382,7 @@ describe('security', () => {
   })
 
   it('POST returns 400 when title exceeds 200 characters', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = { readTasks: async () => [] }
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
@@ -393,7 +393,7 @@ describe('security', () => {
   })
 
   it('POST returns 400 when description exceeds 1000 characters', async () => {
-    const db = { readTasks: async () => [], writeTasks: async () => {} }
+    const db = { readTasks: async () => [] }
     const res = await buildApp(db).inject({
       method: 'POST',
       url: '/tasks',
