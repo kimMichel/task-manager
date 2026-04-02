@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import { isValidDate, readTasks as defaultReadTasks, writeTasks as defaultWriteTasks, updateTask as defaultUpdateTask, deleteTask as defaultDeleteTask } from '../db/json-db.js'
+import { isValidDate, readTasks as defaultReadTasks, writeTasks as defaultWriteTasks, updateTask as defaultUpdateTask, deleteTask as defaultDeleteTask, rolloverPendingTasks as defaultRolloverPendingTasks } from '../db/json-db.js'
 
 const MAX_TITLE_LENGTH = 200
 const MAX_DESCRIPTION_LENGTH = 1000
@@ -62,10 +62,16 @@ export default async function taskRoutes(fastify, opts = {}) {
   const writeTasks = opts.db?.writeTasks ?? defaultWriteTasks
   const updateTask = opts.db?.updateTask ?? defaultUpdateTask
   const deleteTask = opts.db?.deleteTask ?? defaultDeleteTask
+  const rolloverPendingTasks = opts.db?.rolloverPendingTasks ?? defaultRolloverPendingTasks
 
   fastify.get('/tasks', async (request, reply) => {
     const { date } = request.query
     if (!validateDate(date, reply)) return
+    const today = new Date().toISOString().slice(0, 10)
+    const resolvedDate = date ?? today
+    if (resolvedDate === today) {
+      await dbCall(() => rolloverPendingTasks(resolvedDate), reply)
+    }
     return dbCall(() => readTasks(date), reply)
   })
 

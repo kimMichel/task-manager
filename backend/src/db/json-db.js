@@ -63,3 +63,33 @@ export async function deleteTask(date, id, dataDir) {
   await writeTasks(tasks, date, dataDir)
   return deleted
 }
+
+const URGENCY_ORDER = { high: 0, medium: 1, low: 2 }
+const MAX_TASKS = 20
+
+export async function rolloverPendingTasks(todayDate, dataDir) {
+  const d = new Date(todayDate)
+  d.setUTCDate(d.getUTCDate() - 1)
+  const yesterdayDate = d.toISOString().slice(0, 10)
+
+  const [todayTasks, yesterdayTasks] = await Promise.all([
+    readTasks(todayDate, dataDir),
+    readTasks(yesterdayDate, dataDir),
+  ])
+
+  const pendingYesterday = yesterdayTasks
+    .filter((t) => t.status === 'pending')
+    .sort((a, b) => (URGENCY_ORDER[a.urgency] ?? 3) - (URGENCY_ORDER[b.urgency] ?? 3))
+
+  const slots = MAX_TASKS - todayTasks.length
+  if (slots <= 0 || pendingYesterday.length === 0) return
+
+  const toMove = pendingYesterday.slice(0, slots)
+  const toKeep = pendingYesterday.slice(slots)
+  const done = yesterdayTasks.filter((t) => t.status !== 'pending')
+
+  await Promise.all([
+    writeTasks([...todayTasks, ...toMove], todayDate, dataDir),
+    writeTasks([...done, ...toKeep], yesterdayDate, dataDir),
+  ])
+}
